@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>609</height>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -62,9 +62,6 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QPushButton" name="btn_left">
-       <property name="styleSheet">
-        <string notr="true">background-color: rgb(255, 255, 0);</string>
-       </property>
        <property name="text">
         <string>Вліво</string>
        </property>
@@ -72,11 +69,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="btn_right">
-       <property name="styleSheet">
-        <string notr="true">color: rgb(255, 0, 0);
-background-color: rgb(255, 85, 0);
-color: rgb(0, 0, 0);</string>
-       </property>
        <property name="text">
         <string>Вправо</string>
        </property>
@@ -84,9 +76,6 @@ color: rgb(0, 0, 0);</string>
      </item>
      <item>
       <widget class="QPushButton" name="btn_flip">
-       <property name="styleSheet">
-        <string notr="true">background-color: rgb(255, 85, 255);</string>
-       </property>
        <property name="text">
         <string>Дзеркало</string>
        </property>
@@ -94,10 +83,6 @@ color: rgb(0, 0, 0);</string>
      </item>
      <item>
       <widget class="QPushButton" name="btn_sharp">
-       <property name="styleSheet">
-        <string notr="true">color: rgb(0, 0, 0);
-background-color: rgb(0, 85, 255);</string>
-       </property>
        <property name="text">
         <string>Різкість</string>
        </property>
@@ -105,9 +90,6 @@ background-color: rgb(0, 85, 255);</string>
      </item>
      <item>
       <widget class="QPushButton" name="btn_bw">
-       <property name="styleSheet">
-        <string notr="true">background-color: rgb(0, 255, 0);</string>
-       </property>
        <property name="text">
         <string>Ч/Б</string>
        </property>
@@ -122,7 +104,7 @@ background-color: rgb(0, 85, 255);</string>
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
