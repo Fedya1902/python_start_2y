@@ -6,8 +6,8 @@ from ui import Ui_MainWindow
 # M4Y4
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
-from PIL import Image
-
+from PIL import Image, ImageFilter
+from PIL import ImageEnhance
 
 class EasyEditor(QMainWindow):
     def __init__(self):
@@ -17,15 +17,21 @@ class EasyEditor(QMainWindow):
         
         # Змінна для зберігання поточної робочої директорії
         self.workdir = ''
-        # M4Y4
         self.workimage = ImageProcessor(self.ui)
         
 
         # Підключаємо сигнали до кнопок
         self.ui.btn_dir.clicked.connect(self.show_filenames_list)
-        # M4Y4
-        self.ui.btn_bw.clicked.connect(self.workimage.do_bw)  # Підключаємо обробник чорно-білого зображення
+        self.ui.btn_bw.clicked.connect(self.workimage.do_bw) 
         self.ui.lw_files.currentRowChanged.connect(self.showChosenImage)
+        
+        # Дописати інші кнопки
+
+        self.ui.btn_left.clicked.connect(self.workimage.do_left)
+        self.ui.btn_right.clicked.connect(self.workimage.do_right)
+        self.ui.btn_sharp.clicked.connect(self.workimage.do_sharpen)
+        self.ui.btn_flip.clicked.connect(self.workimage.do_flip)
+        
         
 
     """
@@ -46,7 +52,8 @@ class EasyEditor(QMainWindow):
     """
     def choose_workdir(self):
         self.workdir = QFileDialog.getExistingDirectory(self, "Обрати папку")
-    
+        self.workimage.save_workdir(self.workdir) 
+        # Дописати збереження шляху до папки в класі ImageProcessor
     
     """
     Показує список зображень в обраній директорії.
@@ -112,6 +119,39 @@ class ImageProcessor:
         self.ui.lb_image.show()
 
 
+
+    def save_workdir(self, workdir):
+        self.workdir = workdir
+
+    def do_left(self):
+        self.image = self.image.transpose(Image.ROTATE_90)
+        self.saveImage()
+        image_path = os.path.join(self.workdir, self.save_dir, self.filename)
+        self.showImage(image_path)
+
+    def do_right(self):
+        self.image = self.image.transpose(Image.ROTATE_270)
+        self.saveImage()
+        image_path = os.path.join(self.workdir, self.save_dir, self.filename)
+        self.showImage(image_path)    
+
+    def do_flip(self):
+        self.image = self.image.transpose(Image.FLIP_LEFT_RIGHT)   
+        self.saveImage()
+        image_path = os.path.join(self.workdir, self.save_dir, self.filename)
+        self.showImage(image_path) 
+
+    def do_sharpen(self):
+        self.image = self.image.filter(ImageFilter.SHARPEN)   
+        self.saveImage()
+        image_path = os.path.join(self.workdir, self.save_dir, self.filename)
+        self.showImage(image_path)     
+
+            
+
+    # Дописати метод збереження папки + обробка зображень
+    
+    
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
