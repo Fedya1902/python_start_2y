@@ -1,0 +1,59 @@
+# =============================================================================
+        
+    # 1. Контрасність 
+    def do_contrast(self):
+        enhancer = ImageEnhance.Contrast(self.image)
+        self.image = enhancer.enhance(2.0)  # збільшуємо контраст
+        self.saveImage()
+        image_path = os.path.join(self.workdir, self.save_dir, self.filename)
+        self.showImage(image_path)
+
+    # 2. Насиченість
+    def do_saturation(self):
+        enhancer = ImageEnhance.Color(self.image)
+        self.image = enhancer.enhance(2.5)  # збільшуємо Насиченість
+        self.saveImage()
+        image_path = os.path.join(self.workdir, self.save_dir, self.filename)
+        self.showImage(image_path)
+
+     # Ефект «Олівцевий начерк»
+    def do_sketch(self):
+        grayscale = self.image.convert("L")  # Переводим в ЧБ
+        inverted = ImageEnhance.Brightness(grayscale).enhance(2.0)  # збільшуємо яскравість
+        self.image = ImageChops.difference(grayscale, inverted)  # Знаходимо різницу
+        self.saveImage()
+        image_path = os.path.join(self.workdir, self.save_dir, self.filename)
+        self.showImage(image_path)
+        
+    # 4. Ефект «Рельєф»
+    def do_emboss(self):
+        self.image = self.image.filter(ImageFilter.EMBOSS)
+        self.saveImage()
+        image_path = os.path.join(self.workdir, self.save_dir, self.filename)
+        self.showImage(image_path)
+
+    # 5. Обрізка
+    def do_crop(self):
+        width, height = self.image.size
+        left = width * 0.1
+        top = height * 0.1
+        right = width * 0.9
+        bottom = height * 0.9
+        self.image = self.image.crop((left, top, right, bottom))
+        self.saveImage()
+        image_path = os.path.join(self.workdir, self.save_dir, self.filename)
+        self.showImage(image_path)
+        
+    # 6. Інверсія
+    def do_invert(self):
+        self.image = ImageOps.invert(self.image.convert("RGB"))
+        self.saveImage()
+        image_path = os.path.join(self.workdir, self.save_dir, self.filename)
+        self.showImage(image_path)
+    
+    # 7. Постеризація (зменшення кількості кольорів)
+    def do_posterize(self):
+        self.image = ImageOps.posterize(self.image.convert("RGB"), 4)  # 4 рівень кольору
+        self.saveImage()
+        image_path = os.path.join(self.workdir, self.save_dir, self.filename)
+        self.showImage(image_path)
