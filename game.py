@@ -1,12 +1,12 @@
 from pygame import *
 
+# Клас-батько для спрайтів
 class GameSprite(sprite.Sprite):
-    def __init__(self, player_image, player_x, player_y, player_speed,
-                 width=55, height=55):
+    def __init__(self, player_image, player_x, player_y, player_speed, width=55, height=55):
         super().__init__()
-
+        
         self.image = transform.scale(image.load(player_image), (width, height))
-
+        
         self.speed = player_speed
         self.rect = self.image.get_rect()
         self.rect.x = player_x
@@ -15,16 +15,42 @@ class GameSprite(sprite.Sprite):
     def reset(self):
         window.blit(self.image, (self.rect.x, self.rect.y))
 
-class Enemy(GameSprite):
-    side = 'left'
 
+# Гравець
+class Player(GameSprite):
+    def __init__(self, player_image, player_x, player_y, player_speed):
+        super().__init__(player_image, player_x, player_y, player_speed)
+        self.last_direction = "up"
+
+    def update(self):
+        keys = key.get_pressed()
+        if keys[K_LEFT] and self.rect.x > 5:
+            self.rect.x -= self.speed
+            self.last_direction = "left"
+        if keys[K_RIGHT] and self.rect.x < win_width - 60:
+            self.rect.x += self.speed
+            self.last_direction = "right"
+        if keys[K_UP] and self.rect.y > 5:
+            self.rect.y -= self.speed
+            self.last_direction = "up"
+        if keys[K_DOWN] and self.rect.y < win_height - 60:
+            self.rect.y += self.speed
+            self.last_direction = "down"
+
+    def fire(self):
+        if not finish:
+            bullet = Bullet('image.webp', self.rect.centerx, self.rect.centery, 8, self.last_direction)
+            bullets.add(bullet)
+            gun_sound.play()
+
+# Ворог
+class Enemy(GameSprite):
+    side = "left"
+    
     def __init__(self, enemy_image, x, y, speed):
         super().__init__(enemy_image, x, y, speed, 65, 65)
         self.alive = True
-
-    def die(self):
-        self.kill()
-        self.alive = False
+        
 
     def update(self):
         if self.rect.x <= 470:
@@ -34,85 +60,214 @@ class Enemy(GameSprite):
         if self.side == "left":
             self.rect.x -= self.speed
         else:
-            self.rect.x += self.speed   
+            self.rect.x += self.speed
+            
+    """Вбивство монстра."""
+    def die(self):
+        self.kill()
+        self.alive = False
+    
+    
+class Bullet(GameSprite):
+    def __init__(self, image, x, y, speed, direction):
+        super().__init__(image, x, y, speed, 15, 15)
+        self.direction = direction
 
+    def update(self):
+        if self.direction == "up":
+            self.rect.y -= self.speed
+        elif self.direction == "down":
+            self.rect.y += self.speed
+        elif self.direction == "left":
+            self.rect.x -= self.speed
+        elif self.direction == "right":
+            self.rect.x += self.speed
+
+        # Якщо пуля вилетіла за видиме вікно - видаляємо її
+        if self.rect.y < 0 or self.rect.y > win_height or self.rect.x < 0 or self.rect.x > win_width:
+            self.kill()
+
+# Стіна
+class Wall(sprite.Sprite):
+    def __init__(self, color_1, color_2, color_3, wall_x, wall_y, wall_width, wall_height):
+        super().__init__()
+        self.color_1 = color_1
+        self.color_2 = color_2
+        self.color_3 = color_3
+        self.width = wall_width
+        self.height = wall_height
+
+        self.image = Surface([self.width, self.height])
+        self.image.fill((color_1, color_2, color_3))
+
+        self.rect = self.image.get_rect()
+        self.rect.x = wall_x
+        self.rect.y = wall_y
+
+    def draw_wall(self):
+        window.blit(self.image, (self.rect.x, self.rect.y))
+
+# Функція для запуску гри
+def start_game():
+    global pacman, monster, final_point, walls, bullets, finish, start_time
+    
+    pacman = Player('svin.webp', 5, win_height - 80, 4)
+    monster = Enemy('sobaka.png', win_width - 80, 280, 2)
+    final_point = GameSprite('final_point.png', win_width - 120, win_height - 80, 0)
+    
+    # Група стіни
+    walls = sprite.Group(
+        Wall(154, 205, 50, 100, 0, 10, 380),
+        Wall(154, 205, 50, 200, 130, 10, 380),
+        Wall(154, 205, 50, 450, 130, 10, 380),
+        Wall(154, 205, 50, 300, 0, 10, 350),
+        Wall(154, 205, 50, 390, 120, 130, 10)
+    )
+    # Група патрони
+    bullets = sprite.Group()
+    # Статус гри
+    finish = False
+    # Час для статистики
+    start_time = time.get_ticks()
+    
+    
+# Створення вікна
 win_width = 700
 win_height = 500
+window = display.set_mode((win_width, win_height))
+display.set_caption("Лабіринт")
 
-                                    
+# Завантаження фонів
+# фон гри
+background = transform.scale(image.load("background.jpg"), (win_width, win_height))
+# фон при перемозі
+win_bg = transform.scale(image.load("svin2.png"), (win_width, win_height))
+# фон при поразці
+lose_bg = transform.scale(image.load("svynyna.jpg"), (win_width, win_height))
 
-window = display.set_mode((700, 500))
-display.set_caption("Догонялки")
-background = transform.scale(image.load("background.jpg") , (700, 500))
-sprite1 = transform.scale(image.load("sobaka.png") , (100, 100))
-sprite2 = transform.scale(image.load("svin.webp") , (100, 100))
-x1 = 100
-y1 = 300
+# Чи гра ввімкнута?
+game = True
+# Статуси гри
+finish = False
 
-x2 = 300
-y2 = 300
-
-speed = 10
-window.blit(background,(0, 0))
-game = True 
-
+# Годинник та ФПС
 clock = time.Clock()
 FPS = 60
 
+font.init()
+font = font.Font(None, 50)
 
+# Фонова музика гри
 mixer.init()
 mixer.music.load('musica.mp3')
 mixer.music.play()
 
+# Звукові ефекти
+# звук при перемозі
 money_sound = mixer.Sound('final_point.mp3')
+# звук при дотику до стіни
 kick_sound = mixer.Sound('kick.ogg')
+# звук пострілу
 gun_sound = mixer.Sound('gun.mp3')
+# звук крику гравця (fun)
 voice_sound = mixer.Sound('voice.mp3')
 
+# Запускаємо гру
+start_game()
 
 
 while game:
-    window.blit(background,(0, 0))
-    window.blit(sprite1,(x1, y1))
-    window.blit(sprite2,(x2, y2))
-
 
     for e in event.get():
-        if e. type == QUIT:
-            game = False
+        if e.type == QUIT:
+            game = False 
 
-    keys_pressed = key.get_pressed()
+        if e.type == KEYDOWN:
+            if e.key == K_SPACE:
+                pacman.fire()
 
-    if keys_pressed[K_LEFT] and x1 > 5:
-        x1 -= speed
-    if keys_pressed[K_RIGHT] and x1 < 595:
-        x1 += speed
-    if keys_pressed[K_UP] and y1 > 5:
-        y1 -= speed
-    if keys_pressed[K_DOWN] and y1 < 395:
-        y1 += speed
+            if e.key == K_RETURN and finish:
+                start_game()
 
-    if keys_pressed[K_a] and x2 > 5:
-        x2 -= speed
-    if keys_pressed[K_d] and x2 < 595:
-        x2 += speed
-    if keys_pressed[K_w] and y2 > 5:
-        y2 -= speed
-    if keys_pressed[K_s] and y2 < 395:
-        y2 += speed
+            if e.key == K_e:
+                voice_sound.play()  
+
+    if not finish:
+        window.blit(background, (0, 0))
+        pacman.update()
+        bullets.update()
+        pacman.reset()
+        final_point.reset()
+
+        bullets.draw(window)
+
+    if monster.alive:
+        monster.update()
+        monster.reset()
+
+    for wall in walls:
+        wall.draw_wall()
+
+    for bullet in bullets:
+        if monster.alive and sprite.collide_rect(bullet, monster):
+            monster.die()
+            bullet.kill()
+
+
+        if sprite.spritecollide(bullet, walls, False):
+            bullet.kill()    
+
+
+    game_time = (time.get_ticks() - start_time) // 1000
+    timer_text = font.render(f"Час: {game_time}", True, (0, 0, 0))
+    window.blit(timer_text, (10, 10))  # Лівbй верхній кут з відступами 10, 10
+
+    if game_time >= 60:
+        finish = True
+        window.blit(lose_bg, (0, 0))
+
+
+        text1 = font.render("Час вийшов!", True,(255, 0, 0))
+        text2 = font.render("Натисніть Enter", True, (255, 0, 0))
+        window.blit(text1, (250, 200))
+        window.blit(text2, (250, 250))
+        kick_sound.play()
+
+        
+        
+    # Поразка (пакмен торкнувся монстра або стіни)
+    if (sprite.collide_rect(pacman, monster) and monster.alive) or sprite.spritecollide(pacman, walls, False):
+        finish = True
+        window.blit(lose_bg, (0, 0))
+
+        text1 = font.render("Ви програли!", True, (255, 0, 0))
+        text2 = font.render("Натисніть Enter", True, (255, 0, 0))
+        window.blit(text1, (250, 200))
+        window.blit(text2, (250, 250))
+        kick_sound.play()
                 
-
-
-                
-
+                                                    
 
                 
+            # Перемога (пакмен торкнувся фінальной точки)
+    if sprite.collide_rect(pacman, final_point):
+        finish = True
+        end_time = (time.get_ticks() - start_time) // 1000
+        window.blit(win_bg, (0, 0))
+        
+        text1 = font.render(f"Ви виграли за {end_time} сек!", True, (0, 255, 0))
+        text2 = font.render("Натисніть Enter", True, (0, 255, 0))
+        window.blit(text1, (250, 200))
+        window.blit(text2, (250, 250))
+        money_sound.play()
 
 
 
-
-
-    display.update()   
-    clock.tick(FPS)     
-
-
+    
+    # дописати ігровий цикл
+    # 1. обробка подій
+    # 2. перевірка дотику гравця до стін, монстра тощо
+    # 3. показ вікна перемоги/поразки
+    
+    display.update()
+    clock.tick(FPS)
